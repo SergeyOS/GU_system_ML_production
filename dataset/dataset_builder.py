@@ -119,16 +119,37 @@ class DatasetBuilder:
         del profiles
         return dataset
 
-    def save_dataset(self):
-        dataset = self.get_dataset()
+    def prepare_dataset(self, dataset):
+        start = timeit.default_timer()
+        self.logger.info('Dealing with missing values, outliers, categorical features...')
+
+        # Профили
+        dataset['age'] = dataset['age'].fillna(dataset['age'].median())
+        dataset['gender'] = dataset['gender'].fillna(dataset['gender'].mode()[0])
+        dataset.loc[~dataset['gender'].isin(['M', 'F']), 'gender'] = dataset['gender'].mode()[0]
+        dataset['gender'] = dataset['gender'].map({'M': 1., 'F': 0.})
+        dataset.loc[(dataset['age'] > 80) | (dataset['age'] < 7), 'age'] = round(dataset['age'].median())
+        dataset.loc[dataset['days_between_fl_df'] < -1, 'days_between_fl_df'] = -1
+        # Пинги
+        for period in range(1, len(INTER_LIST) + 1):
+            col = 'avg_min_ping_{}'.format(period)
+            dataset.loc[(dataset[col] < 0) |
+                        (dataset[col].isnull()), col] = dataset.loc[dataset[col] >= 0][col].median()
+        # Сессии и прочее
+        dataset.fillna(0, inplace=True)
+        return dataset
+
+    def save_dataset(self) -> str:
+        dataset = self.prepare_dataset(self.get_dataset())
         dataset.to_csv(self.get_path_dataset(), sep=';', index=False)
         self.logger.info(f'Dataset is successfully built and saved to {self.get_path_dataset()}.')
+        return self.get_path_dataset()
 
     def get_path_dataset(self):
         return os.path.join(self.dataset_path, f'dataset_raw_{self.mode}.csv')
 
 
 if __name__ == "__main__":
-    #builder = DatasetBuilder(raw_data_path=TEST_RAW_DATA_PATH, mode=TEST_MODE, argv=sys.argv[1:])
-    builder = DatasetBuilder(argv=sys.argv[1:])
+    builder = DatasetBuilder(raw_data_path=TEST_RAW_DATA_PATH, mode=TEST_MODE, argv=sys.argv[1:])
+    #builder = DatasetBuilder(argv=sys.argv[1:])
     builder.save_dataset()

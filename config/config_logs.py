@@ -5,7 +5,7 @@ import os
 sys.path.append('../')
 
 
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG
 NAME_LOGGER = 'GU_CHURNED'
 LOGS_PATH = '../logs/'
 
@@ -21,11 +21,14 @@ path = os.path.join(path, f'{NAME_LOGGER}.log')
 # создаём потоки вывода логов
 steam = logging.StreamHandler(sys.stderr)
 steam.setFormatter(server_formatter)
-steam2 = logging.StreamHandler(sys.stdout)
-steam.setFormatter(server_formatter)
 steam.setLevel(logging.ERROR)
+steam2 = logging.StreamHandler(sys.stdout)
+steam2.setFormatter(server_formatter)
+steam2.setLevel(logging.INFO)
+
 log_file = logging.handlers.TimedRotatingFileHandler(path, encoding='utf8', interval=1, when='D')
 log_file.setFormatter(server_formatter)
+log_file.setLevel(logging.DEBUG)
 
 # создаём регистратор и настраиваем его
 logger = logging.getLogger(NAME_LOGGER)

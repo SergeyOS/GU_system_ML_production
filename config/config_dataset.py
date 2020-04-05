@@ -20,6 +20,7 @@ TRAIN_MODE = 'train'
 TEST_RAW_DATA_PATH = '../source/test/'
 TEST_MODE = 'test'
 
+DEFAULT_ANSWER_PATH = '../answer/'
 
 # Анализ параметров коммандной строки
 def parse_args_console(argv):
